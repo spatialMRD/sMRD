@@ -16,6 +16,7 @@ Rscript ./plots/jaccard_plot.R
 Rscript ./plots/spatial_correlation_plot.R
 Rscript ./plots/plot_2d_phylo_trees.R
 Rscript ./plots/plot_3d_phylo_trees.R
+Rscript ./plots/plot_pc_scatter.R
 
 # remove tmp files
 rm Rplots.pdf
