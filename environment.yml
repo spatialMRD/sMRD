@@ -1,0 +1,28 @@
+name: smrd
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  # Python core
+  - python=3.10
+  - pip
+
+  # Python packages (based on your code)
+  - numpy
+  - pandas
+  - matplotlib
+  - scikit-bio  # for DistanceMatrix
+  - biopython   # for Phylo
+  - tqdm
+  - scikit-learn
+
+  # R core and packages
+  - r-base
+  - r-tidyverse
+  - r-rmarkdown
+
+  # Development tools
+  - black
+  - flake8
+  - pre-commit

@@ -1,0 +1,9 @@
+,PAT003-S2,PAT003-S5,PAT003-S7,PAT003-S3,PAT003-T1,PAT003-S6,PAT003-S4,PAT003-S8
+PAT003-S2,inf,inf,inf,inf,inf,inf,inf,58.875
+PAT003-S5,inf,inf,59.0,inf,inf,inf,inf,59.875
+PAT003-S7,inf,59.0,inf,inf,inf,inf,inf,inf
+PAT003-S3,inf,inf,inf,inf,0.0,inf,inf,inf
+PAT003-T1,inf,inf,inf,0.0,inf,54.0,inf,inf
+PAT003-S6,inf,inf,inf,inf,54.0,inf,inf,59.3
+PAT003-S4,inf,inf,inf,inf,inf,inf,inf,60.5
+PAT003-S8,58.875,59.875,inf,inf,inf,59.3,60.5,inf

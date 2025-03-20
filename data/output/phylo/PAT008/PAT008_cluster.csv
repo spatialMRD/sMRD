@@ -1,0 +1,13 @@
+,PAT008-S10,PAT008-S12,PAT008-S3,PAT008-S4,PAT008-S7,PAT008-S11,PAT008-S6,PAT008-S9,PAT008-S8,PAT008-T1,PAT008-S2,PAT008-S5
+PAT008-S10,inf,58.0,inf,inf,inf,inf,inf,inf,inf,inf,inf,inf
+PAT008-S12,58.0,inf,55.025,inf,inf,inf,inf,56.386904761904766,inf,inf,inf,inf
+PAT008-S3,inf,55.025,inf,54.88888888888889,inf,inf,inf,inf,inf,inf,inf,inf
+PAT008-S4,inf,inf,54.88888888888889,inf,52.0,inf,inf,inf,inf,inf,inf,inf
+PAT008-S7,inf,inf,inf,52.0,inf,inf,inf,inf,inf,inf,inf,inf
+PAT008-S11,inf,inf,inf,inf,inf,inf,inf,47.5,inf,inf,inf,inf
+PAT008-S6,inf,inf,inf,inf,inf,inf,inf,46.0,inf,inf,inf,inf
+PAT008-S9,inf,56.386904761904766,inf,inf,inf,47.5,46.0,inf,inf,55.92857142857143,54.949404761904766,57.574404761904766
+PAT008-S8,inf,inf,inf,inf,inf,inf,inf,inf,inf,0.0,inf,inf
+PAT008-T1,inf,inf,inf,inf,inf,inf,inf,55.92857142857143,0.0,inf,inf,inf
+PAT008-S2,inf,inf,inf,inf,inf,inf,inf,54.949404761904766,inf,inf,inf,inf
+PAT008-S5,inf,inf,inf,inf,inf,inf,inf,57.574404761904766,inf,inf,inf,inf

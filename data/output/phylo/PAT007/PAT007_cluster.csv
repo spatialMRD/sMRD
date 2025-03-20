@@ -1,0 +1,10 @@
+,PAT007-S2,PAT007-T1,PAT007-S5,PAT007-S8,PAT007-S7,PAT007-S3,PAT007-S6,PAT007-S9,PAT007-S4
+PAT007-S2,inf,0.0,inf,inf,inf,inf,inf,inf,inf
+PAT007-T1,0.0,inf,71.0,inf,inf,inf,inf,inf,inf
+PAT007-S5,inf,71.0,inf,55.833333333333336,inf,inf,inf,inf,inf
+PAT007-S8,inf,inf,55.833333333333336,inf,51.4,inf,inf,inf,inf
+PAT007-S7,inf,inf,inf,51.4,inf,42.875,inf,inf,inf
+PAT007-S3,inf,inf,inf,inf,42.875,inf,inf,43.854166666666664,inf
+PAT007-S6,inf,inf,inf,inf,inf,inf,inf,45.0625,inf
+PAT007-S9,inf,inf,inf,inf,inf,43.854166666666664,45.0625,inf,39.0
+PAT007-S4,inf,inf,inf,inf,inf,inf,inf,39.0,inf
