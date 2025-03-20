@@ -58,5 +58,3 @@ output_plot <- grid.arrange(grobs = plots, ncol = 2, bottom = "Progression Statu
 ggsave(file.path(PLOT_DIR, "jaccard_boxplots.png"), plot = output_plot, width = 8, height = 4)
 # also save as a vector graphic
 ggsave(file.path(PLOT_DIR, "jaccard_boxplots.svg"), plot = output_plot, width = 8, height = 4)
-
-

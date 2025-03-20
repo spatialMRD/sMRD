@@ -30,6 +30,8 @@ def plot_tree(tree, output_file):
         plt.savefig(output_file, format="png")
         plt.close(fig)
         print(f"Tree saved to {output_file}")
+        # remove the tmp.tree file
+        os.remove("tmp.tree")
     except Exception as e:
         print(f"Failed to plot tree: {e}")
 
