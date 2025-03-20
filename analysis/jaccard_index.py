@@ -1,9 +1,3 @@
-import os
-import sys
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from glob import glob
 import numpy as np
 import pandas as pd
 from itertools import combinations
@@ -13,6 +7,7 @@ SAMPLE_INFO_PATH = f"{DATA_DIR}/sample_info/ex_sample_info.csv"
 CNV_PATH = f"{DATA_DIR}/features/ex_cnv.csv"
 SNV_PATH = f"{DATA_DIR}/features/ex_snv.csv"
 OUTPUT_DIR = f"{DATA_DIR}/output"
+
 
 def load_sample_info() -> pd.DataFrame:
     sample_info = pd.read_csv(SAMPLE_INFO_PATH)
@@ -24,7 +19,7 @@ def load_sample_info() -> pd.DataFrame:
     sample_info = sample_info.loc[sample_info["include"] == 1]
     # get the MRD positive blocks as a list
     mrd_positive_sample_ids = sample_info.loc[sample_info["detected"] == 1]
-    mrd_positive_sample_ids = mrd_positive_sample_ids['sample_id'].tolist()
+    mrd_positive_sample_ids = mrd_positive_sample_ids["sample_id"].tolist()
 
     # get the pretreatment tumors
     patient_ids = sample_info["patient_id"].unique()
@@ -37,16 +32,19 @@ def load_sample_info() -> pd.DataFrame:
 
     return sample_info, mrd_positive_sample_ids, pretreatment_tumors
 
+
 # read the cnv file
 def load_cnv_data():
     cnv = pd.read_csv(CNV_PATH)
     return cnv
 
+
 def load_snv_data():
     snv = pd.read_csv(SNV_PATH)
     return snv
 
-def load_features(): 
+
+def load_features():
     cnv = load_cnv_data()
     snv = load_snv_data()
     # concatenate both dataframes, columnwise
@@ -55,15 +53,18 @@ def load_features():
     df = cnv.join(snv, how="outer")
     return df
 
+
 def jaccard_similarity(df):
     """
-    Computes the Jaccard similarity between all pairs of rows in a dataframe.
+    Compute the Jaccard similarity between all pairs of rows in a dataframe.
 
     Args:
-        df (pd.DataFrame): Input dataframe where each row represents a sample, and values can be -1, 0, or 1.
+        df (pd.DataFrame): Input dataframe where each row represents a sample,
+                           and values can be -1, 0, or 1.
 
     Returns:
-        pd.DataFrame: A symmetric dataframe containing Jaccard similarities between rows.
+        pd.DataFrame: A symmetric dataframe containing
+                      Jaccard similarities between rows.
     """
     # Convert dataframe to numpy array for faster computations
     data = df.values
@@ -100,9 +101,9 @@ def get_jaccard_stats(df, patient_id, mrd_positive_sample_ids, pretreatment_tumo
     patient_df = df.loc[samples]
     patient_df = patient_df.fillna(0)
     similarity = jaccard_similarity(patient_df)
-    # drop diagonals from similarity 
+    # drop diagonals from similarity
     similarity = similarity.replace(1, np.nan)
-    # flatten 
+    # flatten
     tmp = similarity.values.flatten()
     # drop nans
     tmp = tmp[~np.isnan(tmp)]
@@ -112,9 +113,10 @@ def get_jaccard_stats(df, patient_id, mrd_positive_sample_ids, pretreatment_tumo
         "std": tmp.std(),
         "min": tmp.min(),
         "max": tmp.max(),
-        "median": np.median(tmp)
+        "median": np.median(tmp),
     }
     return stats
+
 
 def main():
     sample_info, mrd_positive_sample_ids, pretreatment_tumors = load_sample_info()
@@ -124,14 +126,19 @@ def main():
 
     patient_stats = []
     for patient_id in patient_ids:
-        patient_stats.append(get_jaccard_stats(features, patient_id, mrd_positive_sample_ids, pretreatment_tumors))
+        patient_stats.append(
+            get_jaccard_stats(
+                features, patient_id, mrd_positive_sample_ids, pretreatment_tumors
+            )
+        )
 
     jaccard_df = pd.DataFrame(patient_stats)
     # add metadata to jaccard_df
     patient_dict = dict(zip(sample_info["patient_id"], sample_info["progression"]))
-    jaccard_df['progression'] = jaccard_df['patient_id'].map(patient_dict)
+    jaccard_df["progression"] = jaccard_df["patient_id"].map(patient_dict)
 
     jaccard_df.to_csv(f"{OUTPUT_DIR}/jaccard_stats.csv", index=False)
+
 
 if __name__ == "__main__":
     main()

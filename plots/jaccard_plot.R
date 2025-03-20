@@ -12,7 +12,7 @@ create_boxplot <- function(data, metric, y_label) {
   p_value <- t_test$p.value
 
   # Print the p-value to the CLI
-  #cat(metric, "p-value:", p_value, "\n")
+  # cat(metric, "p-value:", p_value, "\n")
   # print the metric, t test stat and p value
   cat(metric, "t-test statistic:", t_test$statistic, "\n")
   cat(metric, "p-value:", p_value, "\n")
@@ -44,8 +44,8 @@ create_boxplot <- function(data, metric, y_label) {
 }
 
 metrics <- list(
-    mean = "Mean Jaccard Index",
-    std = "Standard Deviation Jaccard Index"
+  mean = "Mean Jaccard Index",
+  std = "Standard Deviation Jaccard Index"
 )
 
 plots <- lapply(names(metrics), function(metric) create_boxplot(df, metric, metrics[[metric]]))

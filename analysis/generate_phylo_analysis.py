@@ -1,5 +1,4 @@
 import os
-import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,19 +12,20 @@ CNV_PATH = f"{DATA_DIR}/features/ex_cnv.csv"
 SNV_PATH = f"{DATA_DIR}/features/ex_snv.csv"
 OUTPUT_DIR = f"{DATA_DIR}/output/phylo"
 
+
 def plot_tree(tree, output_file):
     try:
         # Convert the skbio TreeNode to Newick format
-        newick_str = tree.write(file="tmp.tree", format="newick")
-        
+        _ = tree.write(file="tmp.tree", format="newick")
+
         # Read the tree using Bio.Phylo
         bio_tree = Phylo.read("tmp.tree", "newick")
-        
+
         # Plot the tree
         fig = plt.figure(figsize=(10, 8))
         ax = fig.add_subplot(1, 1, 1)
         Phylo.draw(bio_tree, do_show=False, axes=ax)
-        
+
         # Save to file
         plt.savefig(output_file, format="png")
         plt.close(fig)
@@ -34,6 +34,7 @@ def plot_tree(tree, output_file):
         os.remove("tmp.tree")
     except Exception as e:
         print(f"Failed to plot tree: {e}")
+
 
 def single_linkage_clustering(dist_matrix: np.ndarray, root_idx: int) -> np.ndarray:
     """
@@ -79,8 +80,10 @@ def single_linkage_clustering(dist_matrix: np.ndarray, root_idx: int) -> np.ndar
 
     return tree_dist_matrix
 
+
 def hamming_distance(sample1, sample2):
     return sum(abs(a - b) for a, b in zip(sample1, sample2))
+
 
 def root_tree(tree, root_sample):
     root_node = tree.find(root_sample)
@@ -88,6 +91,7 @@ def root_tree(tree, root_sample):
         raise ValueError(f"Sample {root_sample} not found in the tree.")
     tree = tree.root_at(root_node, reset=True, branch_attrs=[], root_name=root_sample)
     return tree
+
 
 def calculate_phylogenetic_distances(tree):
     tip_names = [tip.name for tip in tree.tips()]
@@ -97,8 +101,11 @@ def calculate_phylogenetic_distances(tree):
             if name1 == name2:
                 distances.loc[name1, name2] = 0.0
             else:
-                distances.loc[name1, name2] = tree.find(name1).distance(tree.find(name2))
+                distances.loc[name1, name2] = tree.find(name1).distance(
+                    tree.find(name2)
+                )
     return distances
+
 
 def create_trees(df, patient_id):
     samples = df.index
@@ -109,7 +116,7 @@ def create_trees(df, patient_id):
     for i in range(num_samples):
         row = []
         for j in range(num_samples):
-            if i == j: 
+            if i == j:
                 row.append(0.0)
             else:
                 row.append(hamming_distance(df.iloc[i], df.iloc[j]))
@@ -125,7 +132,11 @@ def create_trees(df, patient_id):
     if len(tumor_samples) != 0:
         root_idx = list(phylogenetic_distances.index).index(tumor_samples[0])
         cluster = single_linkage_clustering(phylogenetic_distances.values, root_idx)
-        cluster = pd.DataFrame(cluster, index=phylogenetic_distances.index, columns=phylogenetic_distances.columns)
+        cluster = pd.DataFrame(
+            cluster,
+            index=phylogenetic_distances.index,
+            columns=phylogenetic_distances.columns,
+        )
 
         # root the tree
         rooted_tree = root_tree(tree, tumor_samples[0])
@@ -136,9 +147,14 @@ def create_trees(df, patient_id):
         print("MISSING ROOT TUMOR!")
         root_idx = 0
         cluster = single_linkage_clustering(phylogenetic_distances.values, root_idx)
-        cluster = pd.DataFrame(cluster, index=phylogenetic_distances.index, columns=phylogenetic_distances.columns)
+        cluster = pd.DataFrame(
+            cluster,
+            index=phylogenetic_distances.index,
+            columns=phylogenetic_distances.columns,
+        )
 
     return tree, phylogenetic_distances, cluster
+
 
 def load_cnv_data():
     cnv = pd.read_csv(CNV_PATH)
@@ -148,13 +164,15 @@ def load_cnv_data():
     cnv = cnv[["patient_id"] + [col for col in cnv.columns if col != "patient_id"]]
     return cnv
 
+
 def load_snv_data():
     snv = pd.read_csv(SNV_PATH)
     # preend column for patient_id
-    snv['patient_id'] = snv['sample'].str.split('-', expand=True)[0]
+    snv["patient_id"] = snv["sample"].str.split("-", expand=True)[0]
     # set patient_id as first column
     snv = snv[["patient_id"] + [col for col in snv.columns if col != "patient_id"]]
     return snv
+
 
 def select_patient_data(cnv, patient_id):
     df = cnv.loc[cnv["patient_id"] == patient_id, :]
@@ -168,6 +186,7 @@ def select_patient_data(cnv, patient_id):
     valid_vars = num_samples.index
     df = df.loc[:, valid_vars]
     return df
+
 
 def main():
     cnv = load_cnv_data()
@@ -196,8 +215,11 @@ def main():
         if not os.path.exists(patient_output):
             os.makedirs(patient_output)
         tree.write(f"{patient_output}/{patient_id}_tree.nwk")
-        phylogenetic_distances.to_csv(f"{patient_output}/{patient_id}_phylo_distances.csv")
+        phylogenetic_distances.to_csv(
+            f"{patient_output}/{patient_id}_phylo_distances.csv"
+        )
         cluster.to_csv(f"{patient_output}/{patient_id}_cluster.csv")
+
 
 if __name__ == "__main__":
     main()

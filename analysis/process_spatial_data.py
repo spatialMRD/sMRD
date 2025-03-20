@@ -1,20 +1,14 @@
 import os
-import sys
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from glob import glob
-import pandas as pd
-import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-import matplotlib.pyplot as plt
-from matplotlib.colors import Normalize
-import matplotlib.cm as cm
 
 DATA_DIR = "data/"
 SAMPLE_INFO_PATH = os.path.join(DATA_DIR, "sample_info/ex_sample_info.csv")
 DIST_MAT_DIR = os.path.join(DATA_DIR, "output/phylo")
+
 
 def load_sample_info():
     sample_info = pd.read_csv(SAMPLE_INFO_PATH)
@@ -28,15 +22,17 @@ def load_sample_info():
     patient_dict = dict(zip(sample_info["patient_id"], sample_info["progression"]))
     # get the MRD positive blocks as a list
     mrd_positive_sample_ids = sample_info.loc[sample_info["detected"] == 1]
-    mrd_positive_sample_ids = mrd_positive_sample_ids['sample_id'].tolist()
+    mrd_positive_sample_ids = mrd_positive_sample_ids["sample_id"].tolist()
     # get a dictionary of patient_id to progression status
-    patient_id_to_progression = dict(zip(sample_info['patient_id'], sample_info['progression']))
+    patient_id_to_progression = dict(
+        zip(sample_info["patient_id"], sample_info["progression"])
+    )
     # get the pretreatment tumors
     # get pretreatment tumors
-    patient_ids = sample_info['patient_id'].unique()
+    patient_ids = sample_info["patient_id"].unique()
     pretreatment_tumors = {}
     for patient_id in patient_ids:
-        tmp = sample_info.loc[sample_info['patient_id'] == patient_id, :]
+        tmp = sample_info.loc[sample_info["patient_id"] == patient_id, :]
         tmp = tmp.loc[tmp.sample_type == "Pre-treatment Tumor", :]
         pretx_tumors = tmp.sample_id.tolist()
         # if len > 1, get the one with "L"
@@ -47,7 +43,14 @@ def load_sample_info():
                     break
         pretreatment_tumors[patient_id] = pretx_tumors
 
-    return sample_info, patient_dict, mrd_positive_sample_ids, patient_id_to_progression, pretreatment_tumors
+    return (
+        sample_info,
+        patient_dict,
+        mrd_positive_sample_ids,
+        patient_id_to_progression,
+        pretreatment_tumors,
+    )
+
 
 def load_dist_mats():
     # Now load the phylo output
@@ -62,6 +65,7 @@ def load_dist_mats():
         # add to the dict
         dist[patient_id] = dist_mat
     return dist
+
 
 def single_linkage_clustering(dist_matrix: np.ndarray, root_idx: int) -> np.ndarray:
     """
@@ -116,14 +120,16 @@ def get_spatial_plot(patient_id, patient_dist, pretx_tumor, sample_info):
     # intersect mrd_detected and patient_dist.columns
     mrd_detected = list(set(mrd_detected).intersection(patient_dist.columns))
     patient_dist = patient_dist.loc[mrd_detected, mrd_detected].to_dict()[pretx_tumor]
-    patient_dist = pd.DataFrame(patient_dist.items(), columns=["sample_id", "genomic_dist"])
+    patient_dist = pd.DataFrame(
+        patient_dist.items(), columns=["sample_id", "genomic_dist"]
+    )
 
     # join with spatial
     df = patient_dist.merge(sample_info, on="sample_id", how="left")
 
     # drop nan
     df = df.dropna(subset=["x", "y", "z"])
-    df = df.sort_values('genomic_dist')
+    df = df.sort_values("genomic_dist")
 
     # get closest sample
     closest_sample = df.iloc[1, :].sample_id
@@ -132,24 +138,33 @@ def get_spatial_plot(patient_id, patient_dist, pretx_tumor, sample_info):
     samples_with_mrd_and_coords = df.sample_id.tolist()
 
     # filter distance matrix to this
-    all_dist = backup_patient_dist.loc[samples_with_mrd_and_coords, samples_with_mrd_and_coords]
+    all_dist = backup_patient_dist.loc[
+        samples_with_mrd_and_coords, samples_with_mrd_and_coords
+    ]
 
     # perform single linkage clustering
     closest_sample_idx = samples_with_mrd_and_coords.index(closest_sample)
 
     clustering = single_linkage_clustering(all_dist.values, closest_sample_idx)
-    clustering = pd.DataFrame(clustering, index=samples_with_mrd_and_coords, columns=samples_with_mrd_and_coords)
+    clustering = pd.DataFrame(
+        clustering,
+        index=samples_with_mrd_and_coords,
+        columns=samples_with_mrd_and_coords,
+    )
 
     # get the connections
     connections = []
     for i in range(clustering.shape[0]):
         for j in range(i + 1, clustering.shape[0]):
             if clustering.iloc[i, j] != np.inf:
-                connections.append((clustering.index[i], clustering.columns[j], clustering.iloc[i, j]))
+                connections.append(
+                    (clustering.index[i], clustering.columns[j], clustering.iloc[i, j])
+                )
 
     df_plot = df.loc[:, ["sample_id", "x", "y", "z", "genomic_dist"]]
 
     return df_plot, connections
+
 
 def add_pcs_and_scale(df):
     scaler = MinMaxScaler()
@@ -175,9 +190,16 @@ def add_pcs_and_scale(df):
 
     return df
 
+
 def main():
     # load the sample info
-    sample_info, patient_dict, mrd_positive_sample_ids, patient_id_to_progression, pretreatment_tumors = load_sample_info()
+    (
+        sample_info,
+        patient_dict,
+        mrd_positive_sample_ids,
+        patient_id_to_progression,
+        pretreatment_tumors,
+    ) = load_sample_info()
     # load the dist mats
     dist = load_dist_mats()
     # get the patient ids
@@ -189,13 +211,15 @@ def main():
             pretx_tumor = pretreatment_tumors[patient_id][0]
             tmp_dist = dist[patient_id]
 
-            df_plot, connections = get_spatial_plot(patient_id, tmp_dist, pretx_tumor, sample_info)
+            df_plot, connections = get_spatial_plot(
+                patient_id, tmp_dist, pretx_tumor, sample_info
+            )
 
             df_plot = add_pcs_and_scale(df_plot)
 
             processed_data[patient_id] = (df_plot, connections)
-        except:
-            print(f"Failed for {patient_id}")
+        except Exception as e:
+            print(f"Failed for {patient_id}: {e}")
 
     # get progressors and non progressors
     progs = sample_info.loc[sample_info.progression == 1, :].patient_id.unique()
@@ -235,6 +259,7 @@ def main():
     with open(os.path.join(DATA_DIR, "output/all_spatial_connections.txt"), "w") as f:
         for conn in all_connections:
             f.write(f"{conn[0]},{conn[1]},{conn[2]}\n")
+
 
 if __name__ == "__main__":
     main()

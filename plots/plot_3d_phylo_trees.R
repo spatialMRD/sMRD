@@ -4,7 +4,7 @@
 library(ggplot2)
 library(dplyr)
 library(tidyverse)
-library(ape)  # For neighbor joining and tree manipulation
+library(ape) # For neighbor joining and tree manipulation
 library(plotly)
 library(wesanderson)
 library(reticulate)
@@ -23,10 +23,10 @@ all_phylo_files <- c()
 for (dir in patient_dirs) {
   # Extract patient ID from directory path
   patient_id <- basename(dir)
-  
+
   # Look for the phylo distances file
   phylo_file <- file.path(dir, paste0(patient_id, "_phylo_distances.csv"))
-  
+
   # Check if file exists and add to list
   if (file.exists(phylo_file)) {
     all_phylo_files <- c(all_phylo_files, phylo_file)
@@ -81,8 +81,8 @@ all_phylo_data <- all_phylo_data %>%
   filter(sample_id1 %in% spatial_sample_ids & sample_id2 %in% spatial_sample_ids)
 
 # Add patient_id column to spatial_samples, split sample_id by "-" and take the first element
-spatial_samples$patient_id <- spatial_samples$sample_id %>% 
-  str_split("-") %>% 
+spatial_samples$patient_id <- spatial_samples$sample_id %>%
+  str_split("-") %>%
   map_chr(1)
 
 # Get the root sample for each patient_id
@@ -106,10 +106,10 @@ create_phylo_tree_and_connections <- function(patient_id, phylo_data, root_sampl
   # Filter data for this patient
   patient_data <- phylo_data %>%
     filter(patient_id == !!patient_id)
-  
+
   # Get unique sample IDs for this patient
   sample_ids <- unique(c(patient_data$sample_id1, patient_data$sample_id2))
-  
+
   # Check if we have at least 3 samples (required for NJ tree)
   if (length(sample_ids) < 3) {
     cat("Patient", patient_id, "has less than 3 samples. Using direct MST approach.\n")
@@ -125,31 +125,31 @@ create_phylo_tree_and_connections <- function(patient_id, phylo_data, root_sampl
       return(NULL)
     }
   }
-  
+
   # Create a distance matrix
   n <- length(sample_ids)
   dist_matrix <- matrix(0, nrow = n, ncol = n)
   rownames(dist_matrix) <- sample_ids
   colnames(dist_matrix) <- sample_ids
-  
+
   # Fill the distance matrix
   for (i in 1:nrow(patient_data)) {
     row <- patient_data[i, ]
     dist_matrix[row$sample_id1, row$sample_id2] <- row$distance
-    dist_matrix[row$sample_id2, row$sample_id1] <- row$distance  # Make it symmetric
+    dist_matrix[row$sample_id2, row$sample_id1] <- row$distance # Make it symmetric
   }
-  
+
   # Convert to a dist object
   dist_obj <- as.dist(dist_matrix)
-  
+
   # Apply neighbor joining algorithm
   nj_tree <- nj(dist_obj)
-  
+
   # Root the tree at the specified root sample
   if (root_sample_id %in% sample_ids) {
     # First, make sure the root sample is at node 1 (leftmost position)
     rooted_tree <- root(nj_tree, which(nj_tree$tip.label == root_sample_id), resolve.root = TRUE)
-    
+
     # Ensure the tree is properly ladderized to have a consistent appearance
     rooted_tree <- ladderize(rooted_tree, right = TRUE)
   } else {
@@ -158,23 +158,23 @@ create_phylo_tree_and_connections <- function(patient_id, phylo_data, root_sampl
     rooted_tree <- ladderize(nj_tree, right = TRUE)
     root_sample_id <- rooted_tree$tip.label[1]
   }
-  
+
   # Extract distances from the NJ tree
   # Get the cophenetic distances from the tree
   tree_dist_matrix <- cophenetic.phylo(rooted_tree)
-  
+
   # Initialize the list of added samples with the root sample
   added_samples <- c(root_sample_id)
-  
+
   # Initialize the list of connections
   connections <- list()
-  
+
   # Iteratively add samples until all are added (MST algorithm)
   while (length(added_samples) < length(sample_ids)) {
     min_dist <- Inf
     min_sample <- NULL
     min_connection <- NULL
-    
+
     # For each sample not yet added
     for (sample in sample_ids[!(sample_ids %in% added_samples)]) {
       # Find the closest already-added sample
@@ -187,7 +187,7 @@ create_phylo_tree_and_connections <- function(patient_id, phylo_data, root_sampl
         }
       }
     }
-    
+
     # Add the sample with minimum distance
     if (!is.null(min_sample)) {
       added_samples <- c(added_samples, min_sample)
@@ -197,10 +197,10 @@ create_phylo_tree_and_connections <- function(patient_id, phylo_data, root_sampl
       break
     }
   }
-  
+
   # Convert the list to a data frame
   connections_df <- do.call(rbind, lapply(connections, as.data.frame))
-  
+
   # Return the connections
   return(list(connections = connections_df))
 }
@@ -231,7 +231,7 @@ create_3d_network_plot <- function(points_df, connections_df, plot_name) {
       type = "scatter3d",
       mode = "markers",
       marker = list(
-        size = ~6 + 14 * genomic_dist_scaled, # Base size of 6, scaling up to 20 based on genomic distance
+        size = ~ 6 + 14 * genomic_dist_scaled, # Base size of 6, scaling up to 20 based on genomic distance
         color = ~genomic_dist_scaled,
         colorscale = colorscale,
         colorbar = list(
@@ -248,7 +248,7 @@ create_3d_network_plot <- function(points_df, connections_df, plot_name) {
       ),
       showlegend = FALSE,
       hoverinfo = "text",
-      text = ~paste("Sample ID:", sample_id, "<br>Genomic Distance:", genomic_dist_scaled)
+      text = ~ paste("Sample ID:", sample_id, "<br>Genomic Distance:", genomic_dist_scaled)
     ) %>%
     # Add the special point with lowest genomic_dist_scaled in black
     add_trace(
@@ -261,20 +261,20 @@ create_3d_network_plot <- function(points_df, connections_df, plot_name) {
         color = "black"
       ),
       showlegend = FALSE,
-      text = ~paste("Root Sample ID:", sample_id, "<br>Genomic Distance:", genomic_dist_scaled),
+      text = ~ paste("Root Sample ID:", sample_id, "<br>Genomic Distance:", genomic_dist_scaled),
       hoverinfo = "text"
     )
 
   # Add connections as lines
   if (!is.null(connections_df) && nrow(connections_df) > 0) {
-    for(i in 1:nrow(connections_df)) {
+    for (i in 1:nrow(connections_df)) {
       # Get coordinates for sample1
       point1 <- points_df[points_df$sample_id == connections_df$sample1[i], ]
       # Get coordinates for sample2
       point2 <- points_df[points_df$sample_id == connections_df$sample2[i], ]
 
       # Add line if both points exist in the points_df
-      if(nrow(point1) > 0 && nrow(point2) > 0) {
+      if (nrow(point1) > 0 && nrow(point2) > 0) {
         p <- p %>% add_trace(
           x = c(point1$x, point2$x),
           y = c(point1$y, point2$y),
@@ -282,12 +282,12 @@ create_3d_network_plot <- function(points_df, connections_df, plot_name) {
           type = "scatter3d",
           mode = "lines",
           line = list(
-            color = 'black',
+            color = "black",
             width = 1.5,
             alpha = 0.7
           ),
           showlegend = FALSE,
-          hoverinfo = 'none'
+          hoverinfo = "none"
         )
       }
     }
@@ -300,11 +300,11 @@ create_3d_network_plot <- function(points_df, connections_df, plot_name) {
       yaxis = list(title = "Y"),
       zaxis = list(title = "Z"),
       camera = list(
-        eye = list(x=1.6, y=1.6, z=1.6)  # Zoomed out camera position
+        eye = list(x = 1.6, y = 1.6, z = 1.6) # Zoomed out camera position
       )
     ),
     title = plot_name,
-    margin = list(l=50, r=50, b=50, t=50) # Increased margins to prevent axis label truncation
+    margin = list(l = 50, r = 50, b = 50, t = 50) # Increased margins to prevent axis label truncation
   )
 
   # Save a png of the plot as a static image to the new directory
@@ -326,25 +326,28 @@ regular_patients <- all_pats
 
 for (pat in regular_patients) {
   print(paste("Processing regular patient:", pat))
-  
+
   # Get the root sample ID
   root_id <- root_sample_map[pat]
   if (is.na(root_id)) {
     cat("No root sample found for patient", pat, ". Skipping.\n")
     next
   }
-  
+
   # Create phylogenetic tree and extract connections
-  tryCatch({
-    result <- create_phylo_tree_and_connections(pat, all_phylo_data, root_id)
-    if (!is.null(result)) {
-      # Filter data for this patient
-      df_patient <- df %>% filter(patient_id == pat)
-      
-      # Create 3D network plot
-      create_3d_network_plot(df_patient, result$connections, pat)
+  tryCatch(
+    {
+      result <- create_phylo_tree_and_connections(pat, all_phylo_data, root_id)
+      if (!is.null(result)) {
+        # Filter data for this patient
+        df_patient <- df %>% filter(patient_id == pat)
+
+        # Create 3D network plot
+        create_3d_network_plot(df_patient, result$connections, pat)
+      }
+    },
+    error = function(e) {
+      cat("Error processing patient", pat, ":", e$message, "\n")
     }
-  }, error = function(e) {
-    cat("Error processing patient", pat, ":", e$message, "\n")
-  })
+  )
 }

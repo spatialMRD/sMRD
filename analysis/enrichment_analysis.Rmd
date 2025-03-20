@@ -30,16 +30,16 @@ df_snv <- df_snv %>% filter(TYPE %in% c("exonic", "missense", "stopgain", "start
 
 ```{r}
 # get counts of gene by unique patient_id
-gene_counts <- df_snv %>% 
-  group_by(gene) %>% 
-  summarise(n = n_distinct(patient_id)) %>% 
+gene_counts <- df_snv %>%
+  group_by(gene) %>%
+  summarise(n = n_distinct(patient_id)) %>%
   arrange(desc(n))
 
 # get gene counts for progressors
-gene_counts_progressors <- df_snv %>% 
-  filter(progression_status == 1) %>% 
-  group_by(gene) %>% 
-  summarise(n = n_distinct(patient_id)) %>% 
+gene_counts_progressors <- df_snv %>%
+  filter(progression_status == 1) %>%
+  group_by(gene) %>%
+  summarise(n = n_distinct(patient_id)) %>%
   arrange(desc(n))
 
 # get gene counts for non progressors
@@ -50,7 +50,9 @@ gene_counts_non_progressors <- df_snv %>%
   arrange(desc(n))
 
 # filter to where gene_counts > 3
-genes_to_keep <- gene_counts %>% filter(n >= 2) %>% pull(gene)
+genes_to_keep <- gene_counts %>%
+  filter(n >= 2) %>%
+  pull(gene)
 
 # print how many genes we're keeping and how many we're dropping
 length(genes_to_keep)
@@ -80,14 +82,14 @@ pc_genes <- pc_genes[!grepl("LINC", pc_genes)]
 df_snv <- df_snv %>% filter(gene %in% pc_genes)
 
 # Just get responder patients
-responders <- df_snv %>% 
-  filter(progression_status == 0) %>% 
-  pull(patient_id) %>% 
+responders <- df_snv %>%
+  filter(progression_status == 0) %>%
+  pull(patient_id) %>%
   unique()
 
 non_responders <- df_snv %>%
   filter(progression_status == 1) %>%
-  pull(patient_id) %>% 
+  pull(patient_id) %>%
   unique()
 ```
 
@@ -104,17 +106,18 @@ responders
 ```{r}
 get_var_fold_change <- function(first_patient_df, last_patient_df) {
   # Merge
-  intersect <- inner_join(first_patient_df, last_patient_df, 
-                          by = c("varid"), 
-                          suffix = c("_first", "_last"))
-  
+  intersect <- inner_join(first_patient_df, last_patient_df,
+    by = c("varid"),
+    suffix = c("_first", "_last")
+  )
+
   # Calculate logFC
   epsilon <- 1e-6
   intersect$logFC <- log((intersect$AF_last + epsilon) / (intersect$AF_first + epsilon))
-  
+
   # Calculate zscore
   intersect$zscore <- scale(intersect$logFC)
-  
+
   return(intersect)
 }
 ```
@@ -126,16 +129,21 @@ results_non_responders <- list()
 # Compute z scores
 for (patient in responders) {
   patient_snv <- df_snv %>% filter(patient_id == patient)
-  
+
   # SNVs
   # get the unique sample_ids where timepoint == 1
-  post_samples <- patient_snv %>% filter(timepoint == 1) %>% pull(sample_id)
+  post_samples <- patient_snv %>%
+    filter(timepoint == 1) %>%
+    pull(sample_id)
   # just get the first sample_id where timepoint == -1
-  pre_sample <- patient_snv %>% filter(timepoint == -1) %>% pull(sample_id) %>% first()
-  
+  pre_sample <- patient_snv %>%
+    filter(timepoint == -1) %>%
+    pull(sample_id) %>%
+    first()
+
   post_sample <- patient_snv %>% filter(sample_id %in% post_samples)
   pre_sample_data <- patient_snv %>% filter(sample_id == pre_sample)
-  
+
   # Check that pre_sample_data is not empty
   if (nrow(pre_sample_data) > 0) {
     fc_df <- get_var_fold_change(pre_sample_data, post_sample)
@@ -146,16 +154,21 @@ for (patient in responders) {
 
 for (patient in non_responders) {
   patient_snv <- df_snv %>% filter(patient_id == patient)
-  
+
   # SNVs
   # get the unique sample_ids where timepoint == 1
-  post_samples <- patient_snv %>% filter(timepoint == 1) %>% pull(sample_id)
+  post_samples <- patient_snv %>%
+    filter(timepoint == 1) %>%
+    pull(sample_id)
   # just get the first sample_id where timepoint == -1
-  pre_sample <- patient_snv %>% filter(timepoint == -1) %>% pull(sample_id) %>% first()
-  
+  pre_sample <- patient_snv %>%
+    filter(timepoint == -1) %>%
+    pull(sample_id) %>%
+    first()
+
   post_sample <- patient_snv %>% filter(sample_id %in% post_samples)
   pre_sample_data <- patient_snv %>% filter(sample_id == pre_sample)
-  
+
   # Check that pre_sample_data is not empty
   if (nrow(pre_sample_data) > 0) {
     fc_df <- get_var_fold_change(pre_sample_data, post_sample)
@@ -186,13 +199,13 @@ library(stats)
 genes <- unique(var_enrichment_responders$GENE)
 results_responders <- map_dfr(genes, function(gene) {
   gn <- gene
-  gene_zscores <- var_enrichment_responders %>% 
-    filter(GENE == gene) %>% 
+  gene_zscores <- var_enrichment_responders %>%
+    filter(GENE == gene) %>%
     pull(zscore)
-  other_zscores <- var_enrichment_responders %>% 
-    filter(GENE != gene) %>% 
+  other_zscores <- var_enrichment_responders %>%
+    filter(GENE != gene) %>%
     pull(zscore)
-  test_result <- wilcox.test(gene_zscores, other_zscores, alternative = 'two.sided')
+  test_result <- wilcox.test(gene_zscores, other_zscores, alternative = "two.sided")
   tibble(
     gene = gene,
     meanzscore = mean(gene_zscores),
@@ -208,13 +221,13 @@ results_responders <- map_dfr(genes, function(gene) {
 genes <- unique(var_enrichment_non_responders$GENE)
 results_non_responders <- map_dfr(genes, function(gene) {
   gn <- gene
-  gene_zscores <- var_enrichment_non_responders %>% 
-    filter(GENE == gene) %>% 
+  gene_zscores <- var_enrichment_non_responders %>%
+    filter(GENE == gene) %>%
     pull(zscore)
-  other_zscores <- var_enrichment_non_responders %>% 
-    filter(GENE != gene) %>% 
+  other_zscores <- var_enrichment_non_responders %>%
+    filter(GENE != gene) %>%
     pull(zscore)
-  test_result <- wilcox.test(gene_zscores, other_zscores, alternative = 'two.sided')
+  test_result <- wilcox.test(gene_zscores, other_zscores, alternative = "two.sided")
   tibble(
     gene = gene,
     meanzscore = mean(gene_zscores),
@@ -229,8 +242,8 @@ results_non_responders <- map_dfr(genes, function(gene) {
 # Multiple hypothesis test correction
 library(stats)
 
-results_responders$pval_corrected <- p.adjust(results_responders$pval, method = 'fdr')
-results_non_responders$pval_corrected <- p.adjust(results_non_responders$pval, method = 'fdr')
+results_responders$pval_corrected <- p.adjust(results_responders$pval, method = "fdr")
+results_non_responders$pval_corrected <- p.adjust(results_non_responders$pval, method = "fdr")
 ```
 
 # Visualization
@@ -248,13 +261,12 @@ library(ggbreak)
 # Function to plot volcano plot
 plot_volcano <- function(data, title) {
   # Define the colormap
-  cols <- c(
-  )
-  
+  cols <- c()
+
   # Determine significance threshold
   significance_threshold <- 0.05
   log_threshold <- -log10(significance_threshold)
-  
+
   # Add a 'significant' flag and 'color_label' based on significance and gene
   data <- data %>%
     mutate(
@@ -266,31 +278,35 @@ plot_volcano <- function(data, title) {
       # Create label with italicized gene name and sample size
       gene_label = paste0("italic('", gene, "') (n=", num_samples, ")")
     )
-  
+
   # Create a color mapping including 'Non-Significant'
   color_mapping <- c(cols, "Non-Significant" = "black")
-  
+
   # Create the plot
   p <- ggplot(data, aes(x = meanzscore, y = -log10(pval_corrected))) +
     # Add points with different styles for significant and non-significant
-    geom_point(data = subset(data, !significant),
-               aes(size = num_samples*.5),
-               shape = 21,
-               fill = "white", 
-               color = "black",
-               alpha=.2) +
-    geom_point(data = subset(data, significant),
-               aes(size = num_samples*.5),
-               shape = 21,
-               fill = "purple",
-               color = "black",
-               alpha=.6) +
+    geom_point(
+      data = subset(data, !significant),
+      aes(size = num_samples * .5),
+      shape = 21,
+      fill = "white",
+      color = "black",
+      alpha = .2
+    ) +
+    geom_point(
+      data = subset(data, significant),
+      aes(size = num_samples * .5),
+      shape = 21,
+      fill = "purple",
+      color = "black",
+      alpha = .6
+    ) +
     scale_size_continuous(range = c(1, 8)) +
     theme_classic(base_family = "Arial") +
     labs(
       title = title,
       x = "Mean Z-Score",
-      y = expression(-log[10](FDR~Corrected~P~Value))
+      y = expression(-log[10](FDR ~ Corrected ~ P ~ Value))
     ) +
     theme(
       legend.position = "none",
@@ -309,11 +325,11 @@ plot_volcano <- function(data, title) {
       point.padding = 0.5,
       segment.color = "grey50",
       family = "Arial",
-      parse = TRUE,  # Enable parsing of expressions for italics
+      parse = TRUE, # Enable parsing of expressions for italics
       max.overlaps = 50
     ) +
     scale_x_continuous(limits = c(-2, 2))
-  
+
   # Return the plot
   return(p)
 }
@@ -328,7 +344,7 @@ ggsave(paste0(DATA_DIR, "plots/volcano_plot_snv_responders.png"), p, width = 5, 
 # save as eps
 ggsave(paste0(DATA_DIR, "plots/volcano_plot_snv_responders.eps"), p, width = 5, height = 4, dpi = 300, device = cairo_ps)
 # save these as pdf
-ggsave(paste0(DATA_DIR, "plots/volcano_plot_snv_responders.pdf"), p, width = 5, height = 4, dpi = 300, device=cairo_pdf)
+ggsave(paste0(DATA_DIR, "plots/volcano_plot_snv_responders.pdf"), p, width = 5, height = 4, dpi = 300, device = cairo_pdf)
 ```
 
 ```{r}
@@ -337,8 +353,7 @@ print(p)
 ggsave(paste0(DATA_DIR, "plots/volcano_plot_snv_non_responders.png"), p, width = 5, height = 4, dpi = 300)
 ggsave(paste0(DATA_DIR, "plots/volcano_plot_snv_non_responders.eps"), p, width = 5, height = 4, dpi = 300, device = cairo_ps)
 # save these as pdf
-ggsave(paste0(DATA_DIR, "plots/volcano_plot_snv_non_responders.pdf"), p, width = 5, height = 4, dpi = 300, device=cairo_pdf)
-
+ggsave(paste0(DATA_DIR, "plots/volcano_plot_snv_non_responders.pdf"), p, width = 5, height = 4, dpi = 300, device = cairo_pdf)
 ```
 
 ```{r}
@@ -355,8 +370,12 @@ write_csv(results_non_responders, paste0(DATA_DIR, "plots/results_non_responders
 
 ```{r}
 # get the significantly upregulated genes in responders and non responders
-sig_responders <- results_responders %>% filter(pval_corrected < 0.00001) %>% filter(meanzscore > 0)
-sig_non_responders <- results_non_responders %>% filter(pval_corrected < 0.00001) %>% filter(meanzscore > 0)
+sig_responders <- results_responders %>%
+  filter(pval_corrected < 0.00001) %>%
+  filter(meanzscore > 0)
+sig_non_responders <- results_non_responders %>%
+  filter(pval_corrected < 0.00001) %>%
+  filter(meanzscore > 0)
 
 # get just the gene names
 sig_responders <- sig_responders$gene
@@ -377,12 +396,14 @@ unique_non_responder
 
 ```{r}
 sig_non_responders <- results_non_responders %>% filter(pval_corrected < 0.05)
-g <-sig_non_responders$gene
+g <- sig_non_responders$gene
 ```
 
 ```{r}
 # get variant calls in g
-non_responder_snv <- df_snv %>% filter(patient_id %in% non_responders) %>% filter(gene %in% g)
+non_responder_snv <- df_snv %>%
+  filter(patient_id %in% non_responders) %>%
+  filter(gene %in% g)
 ```
 
 ```{r}
