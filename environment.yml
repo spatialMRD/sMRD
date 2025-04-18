@@ -1,4 +1,4 @@
-name: smrd
+name: test_env_safe_delete
 channels:
   - conda-forge
   - bioconda
@@ -8,21 +8,20 @@ dependencies:
   - python=3.10
   - pip
 
-  # Python packages (based on your code)
-  - numpy
-  - pandas
-  - matplotlib
-  - scikit-bio  # for DistanceMatrix
-  - biopython   # for Phylo
-  - tqdm
-  - scikit-learn
+  # Python packages
+  - pandas=2.2.3
+  - matplotlib=3.10.1
+  - scikit-bio=0.6.3
+  - biopython=1.85
+  - tqdm=4.67.1
+  - scikit-learn==1.6.1
 
   # R core and packages
-  - r-base
-  - r-tidyverse
-  - r-rmarkdown
+  - r-base=4.4.2
+  - r-tidyverse=2.0.0
+  - r-rmarkdown=2.29
 
   # Development tools
-  - black
-  - flake8
-  - pre-commit
+  - black=25.1.0
+  - flake8=7.1.2
+  - pre-commit=4.1.0
