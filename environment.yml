@@ -1,4 +1,4 @@
-name: test_env_safe_delete
+name: smrd
 channels:
   - conda-forge
   - bioconda
