@@ -31,6 +31,8 @@ To generate intermediate data and figures, run the following script:
 
 To perform variant enrichment analysis, run the R Markdown notebook under `analysis/enrichment_analysis.Rmd`.
 
+To reproduce the manuscript figures or to run a custom analysis, replace the provided synthetic data with a new dataset.
+
 # Output
 
 Tabular output, phylogenetic trees, and statistics are written to the `data/output` directory. Plots are written to the `data/plots` directory. Runtime for example data should not exceed a couple of minutes on a standard desktop computer.
