@@ -8,7 +8,9 @@ library(ape) # For neighbor joining and tree manipulation
 library(plotly)
 library(wesanderson)
 library(reticulate)
-use_python("/Users/nick/opt/miniconda3/bin/python")
+# Get the current Python executable path from the system
+python_path <- Sys.which("python")
+use_python(python_path)
 
 DATA_DIR <- "data/"
 base_dir <- paste0(DATA_DIR, "output/phylo/")
