@@ -1,6 +1,6 @@
 # sMRD Code
 
-This code is used for analysis and visualization of data from the sMRD manuscript by Ransohoff et al from the laboratory of Ash Alizadeh at Stanofrd University. 
+This code is used for analysis and visualization of data from the sMRD manuscript by Ransohoff et al from the laboratory of Ash Alizadeh at Stanford University. 
 
 # Installation
 
